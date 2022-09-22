@@ -1,21 +1,43 @@
-import React, { useEffect, useLayoutEffect } from 'react';
+import React, { useEffect } from 'react';
 import useAxios from '../hooks/useAxios';
+import Skeleton from './Skeleton';
 
 const RandomMeal = () => {
     const { fetchData, response, loading } = useAxios();
-    console.log(response);
+    const { strMeal, strMealThumb, strInstructions, strYoutube } = response;
+    const youtubeUrl = strYoutube?.replace('watch?v=', 'embed/');
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const ingredients = [
-        {
-            ingredient: 'penne rigate',
-            measure: '1 pound'
+    if (loading) {
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-10">
+                <Skeleton className="h-10 md:w-40" />
+                <Skeleton className="h-10 w-72 mt-6" />
+                <div className="grid gap-4 md:grid-cols-2 mt-4">
+                    <Skeleton className="md:h-72 h-52" />
+                    <Skeleton className="md:h-72 h-52" />
+                </div>
+                <Skeleton className="h-10 w-72 mt-6" />
+                <Skeleton className="h-64 mt-6" />
+                <Skeleton className="h-72 mt-6" />
+            </div>
+        );
+    }
+
+    let ingredients = [];
+    Object.keys(response).forEach((item, index) => {
+        if (response[`strIngredient${index}`]) {
+            ingredients.push({
+                "ingredient": response[`strIngredient${index}`],
+                "measure": response[`strMeasures${index}`]
+            });
         }
-    ];
-
+    });
+    
     const renderList = (item, i) => (
         <div className="flex text-sm" key={i}>
             <li>{item.ingredient} - </li>
@@ -29,19 +51,20 @@ const RandomMeal = () => {
         <div className="max-w-4xl mx-auto px-4 py-10">
             <button 
                 className="bg-blue-800 text-white px-4 py-2 w-full rounded-md md:w-40"
+                onClick={() => fetchData()}
             >
                 Get New Meal
             </button>
             <h1
                 className="text-4xl font-bold mt-6 underline-none"
             >
-                This is the title
+                {strMeal}
             </h1>
             <div className="md:grid md:grid-cols-2 md:gap-4">
                 <div className="mt-4 border-orange-500 border-4 rounded-md h-80">
                     <img 
                         className="w-full h-full object-cover"
-                        src="https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg" 
+                        src={strMealThumb} 
                         alt="meal-img" 
                     />
                 </div>
@@ -56,16 +79,12 @@ const RandomMeal = () => {
                 <h3 className="text-4xl font-bold mb-2">
                     Instructions:
                 </h3>
-                <p>
-                    Lorem, ipsum dolor sit amet consectetur adipisicing elit. 
-                    Temporibus dolorum odio, sapiente ut eveniet quo labore autem nostrum 
-                    eligendi necessitatibus.
-                </p>
+                <p>{strInstructions}</p>
             </div>
             <div className="aspect-w-16 aspect-h-9 mt-6">
                 <iframe 
                     title="youtube"
-                    src="https://www.youtube.com/embed/r9jwGansp1E" 
+                    src={youtubeUrl} 
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
